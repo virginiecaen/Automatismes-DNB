@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Automatismes DNB – Maths</title>
+
+  <!-- MathLive : saisie mathématique -->
+  <script src="https://unpkg.com/mathlive"></script>
+
+  <!-- MathJax : affichage -->
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <!-- Supabase -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+    .card {
+      border: 1px solid #ccc;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+    math-field {
+      width: 100%;
+      font-size: 1.2em;
+      margin-top: 10px;
+    }
+    button {
+      margin-top: 10px;
+      padding: 8px 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Réviser les automatismes – DNB</h1>
+
+  <div id="card" class="card">
+    <div id="question"></div>
+
+    <p><strong>Ta réponse :</strong></p>
+    <math-field id="student-answer"></math-field>
+
+    <br>
+    <button onclick="showCorrection()">Voir la correction</button>
+
+    <p id="correction" style="display:none;">
+      <strong>Correction :</strong>
+      <span id="answer"></span>
+    </p>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
