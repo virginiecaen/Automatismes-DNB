@@ -1,163 +1,168 @@
-<!DOCTYPE html>
-<html lang="fr">
+
+<!doctype html>
+<html lang="fr" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <title>Fiches de Maths</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Automatismes en 3e</title>
+
+  <!-- TailwindCSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+
+  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async
-          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
   <style>
-    body { font-family: 'Arial', sans-serif; background: #fdf6e3; color: #333; margin: 0; padding: 0; }
-    header { background: #268bd2; color: white; padding: 1em; text-align: center; }
-    button { margin: 0.5em; padding: 0.5em 1em; border-radius: 5px; border: none; cursor: pointer; }
-    button:hover { opacity: 0.9; }
-    .enseignant { display: none; margin: 1em; }
-    .fiche { background: #eee8d5; margin: 1em; padding: 1em; border-radius: 8px; }
-    .container { display: flex; flex-wrap: wrap; justify-content: center; }
-    textarea { width: 100%; height: 100px; font-size: 1em; }
+    body { box-sizing: border-box; }
+    * { font-family: 'Outfit', sans-serif; }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .fade-in { animation: fadeIn 0.3s ease-out; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px);} to { opacity: 1; transform: translateY(0);} }
+    .slide-up { animation: slideUp 0.4s ease-out; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(20px);} to { opacity: 1; transform: translateY(0);} }
+    .theme-pill { transition: all 0.2s ease; }
+    .theme-pill:hover { transform: translateY(-2px); }
+    @view-transition { navigation: auto; }
   </style>
 </head>
-<body>
+<body class="h-full">
+  <div id="app" class="h-full overflow-auto" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);">
+    <!-- Header -->
+    <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
+      <div class="max-w-6xl mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+              <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zm0-5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65c-.04-.24-.25-.42-.5-.42h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66z"/></svg>
+            </div>
+            <div>
+              <h1 id="main-title" class="text-xl font-bold text-white">Automatismes en 3e</h1>
+              <p id="subtitle" class="text-sm text-slate-400">Fiches de révision</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="mode-label" class="text-sm font-medium text-slate-300">Mode Élève</span>
+            <button id="mode-toggle" class="relative w-14 h-7 rounded-full bg-slate-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-slate-900" aria-label="Basculer le mode">
+              <span id="toggle-dot" class="absolute left-1 top-1 w-5 h-5 rounded-full bg-white shadow-lg transform transition-transform duration-300 flex items-center justify-center text-xs"> 🎓 </span>
+            </button>
+            <button id="logout-btn" class="hidden ml-1 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700" aria-label="Se déconnecter">
+              Se déconnecter
+            </button>
+          </div>
+        </div>
+      </div>
+    </header>
 
-<header>
-  <h1>Fiches de Maths</h1>
-  <button id="modeEleveBtn">Mode élève</button>
-  <button id="modeEnseignantBtn">Mode enseignant</button>
-</header>
+    <!-- Login Modal (replaces teacher password modal) -->
+    <div id="password-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="login-title">
+      <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="modal-backdrop"></div>
+      <div class="relative bg-slate-900 rounded-2xl p-6 max-w-sm w-full border border-slate-700 shadow-2xl">
+        <h3 id="login-title" class="text-lg font-semibold text-white mb-4">Connexion Enseignant</h3>
+        <form id="password-form" class="space-y-3">
+          <div>
+            <label for="teacher-email" class="block text-sm text-slate-400 mb-2">E‑mail</label>
+            <input type="email" id="teacher-email" class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="prof@exemple.fr" required />
+          </div>
+          <div>
+            <label for="password-input" class="block text-sm text-slate-400 mb-2">Mot de passe</label>
+            <input type="password" id="password-input" class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="Mot de passe" required />
+          </div>
+          <div id="password-error" class="hidden text-red-400 text-sm">❌ Identifiants incorrects ou compte non autorisé</div>
+          <div class="flex gap-3 pt-1">
+            <button type="button" id="cancel-password" class="flex-1 py-2 px-4 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors">Annuler</button>
+            <button type="submit" class="flex-1 py-2 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500 transition-colors">Se connecter</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
-<div class="enseignant" id="enseignantPanel">
-  <h2>Ajouter une fiche</h2>
-  <input type="text" id="titreFiche" placeholder="Titre de la fiche"><br><br>
-  <textarea id="contenuFiche" placeholder="Contenu (MathJax autorisé)"></textarea><br>
-  <button id="ajouterFicheBtn">Ajouter la fiche</button>
-</div>
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+      <!-- STUDENT MODE -->
+      <div id="student-mode">
+        <!-- Theme Selection -->
+        <section class="text-center slide-up">
+          <h2 class="text-2xl font-bold text-white mb-2">Choisissez un thème</h2>
+          <p class="text-slate-400 mb-4">Sélectionnez un thème pour commencer à réviser</p>
+          <p class="text-slate-500 text-sm mb-6">💡 Astuce : Utilisez le bouton "Mélanger" pour réviser dans un ordre aléatoire !</p>
 
-<div class="container" id="fichesContainer">
-  <!-- Les fiches apparaîtront ici -->
-</div>
+          <div id="student-themes" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <button data-theme="calcul" class="student-theme-btn group p-6 rounded-2xl bg-blue-500/10 border-2 border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/20 transition-all duration-300">
+              <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">🔢</div>
+              <div class="text-blue-300 font-medium">Calcul</div>
+              <div class="text-blue-400/60 text-xs mt-1" data-count="calcul">0 fiches</div>
+            </button>
 
-<script>
-  // === CONFIGURATION SUPABASE ===
-  const supabaseUrl = 'https://qzetwcnumydxgyjtumdz.supabase.co';
-  const supabaseKey = 'sb_publishable_BVXGIlfdPAiFZ_h-1pVNDQ_VcCTPlBF';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+            <button data-theme="geometrie" class="student-theme-btn group p-6 rounded-2xl bg-purple-500/10 border-2 border-purple-500/30 hover:border-purple-400 hover:bg-purple-500/20 transition-all duration-300">
+              <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">📐</div>
+              <div class="text-purple-300 font-medium">Géométrie</div>
+              <div class="text-purple-400/60 text-xs mt-1" data-count="geometrie">0 fiches</div>
+            </button>
 
-  // === ELEMENTS ===
-  const modeEleveBtn = document.getElementById('modeEleveBtn');
-  const modeEnseignantBtn = document.getElementById('modeEnseignantBtn');
-  const enseignantPanel = document.getElementById('enseignantPanel');
-  const ajouterFicheBtn = document.getElementById('ajouterFicheBtn');
-  const fichesContainer = document.getElementById('fichesContainer');
+            <button data-theme="grandeurs" class="student-theme-btn group p-6 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 hover:border-amber-400 hover:bg-amber-500/20 transition-all duration-300">
+              <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">📏</div>
+              <div class="text-amber-300 font-medium">Grandeurs</div>
+              <div class="text-amber-400/60 text-xs mt-1" data-count="grandeurs">0 fiches</div>
+            </button>
 
-  // === GESTION MODE ===
-  modeEleveBtn.onclick = () => {
-    enseignantPanel.style.display = 'none';
-  }
+            <button data-theme="donnees" class="student-theme-btn group p-6 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-500/20 transition-all duration-300">
+              <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">📊</div>
+              <div class="text-emerald-300 font-medium">Données</div>
+              <div class="text-emerald-400/60 text-xs mt-1" data-count="donnees">0 fiches</div>
+            </button>
 
-  modeEnseignantBtn.onclick = async () => {
-    const mdp = prompt("Mot de passe enseignant ?");
-    if(mdp === "TonMotDePasse") { // CHANGE LE MOT DE PASSE ICI
-      enseignantPanel.style.display = 'block';
-    } else {
-      alert("Mot de passe incorrect !");
-    }
-  }
+            <button data-theme="fonctions" class="student-theme-btn group p-6 rounded-2xl bg-rose-500/10 border-2 border-rose-500/30 hover:border-rose-400 hover:bg-rose-500/20 transition-all duration-300">
+              <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">📈</div>
+              <div class="text-rose-300 font-medium">Fonctions</div>
+              <div class="text-rose-400/60 text-xs mt-1" data-count="fonctions">0 fiches</div>
+            </button>
+          </div>
 
-  // === AJOUT DE FICHE ===
-  ajouterFicheBtn.onclick = async () => {
-    const titre = document.getElementById('titreFiche').value;
-    const contenu = document.getElementById('contenuFiche').value;
-    if(!titre || !contenu) return alert("Remplis tous les champs !");
-    
-    const { data, error } = await supabase
-      .from('fiches')
-      .insert([{ titre, contenu }]);
-    
-    if(error) { alert("Erreur : " + error.message); return; }
-    
-    document.getElementById('titreFiche').value = '';
-    document.getElementById('contenuFiche').value = '';
-    chargerFiches();
-  }
+          <!-- Random Theme Button -->
+          <div class="mt-8">
+            <button id="random-theme-btn" class="group px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 border-2 border-violet-500/40 hover:border-violet-400 hover:from-violet-500/30 hover:to-fuchsia-500/30 transition-all duration-300 inline-flex items-center gap-3">
+              <div class="text-3xl group-hover:scale-110 transition-transform">🎲</div>
+              <div>
+                <div class="text-violet-300 font-semibold text-lg">Fiches aléatoires</div>
+                <div class="text-violet-400/60 text-xs" id="random-count">Tous les thèmes mélangés</div>
+              </div>
+            </button>
+          </div>
+        </section>
 
-  // === CHARGEMENT DES FICHES ===
-  async function chargerFiches() {
-    const { data, error } = await supabase
-      .from('fiches')
-      .select('*')
-      .order('id', { ascending: true });
+        <!-- Flashcard View -->
+        <section id="flashcard-view" class="hidden">
+          <div class="flex items-center justify-between mb-6">
+            <button id="back-to-themes" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors" aria-label="Retour aux thèmes">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+              Retour aux thèmes
+            </button>
+            <div class="flex items-center gap-2">
+              <span id="current-theme-badge" class="px-3 py-1 rounded-full text-sm font-medium border"></span>
+              <span id="card-progress" class="text-slate-400 text-sm mono"></span>
+            </div>
+          </div>
 
-    if(error) { console.log(error); return; }
-
-    fichesContainer.innerHTML = '';
-    data.forEach(fiche => {
-      const div = document.createElement('div');
-      div.className = 'fiche';
-      div.innerHTML = `<h3>${fiche.titre}</h3><p>${fiche.contenu}</p>`;
-      fichesContainer.appendChild(div);
-    });
-
-    MathJax.typeset(); // Pour afficher les maths
-  }
-
-  // Au démarrage
-  chargerFiches();
-</script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script id="MathJax-script" async
-        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-<script>
-  const supabaseUrl = 'TON_SUPABASE_URL';
-  const supabaseKey = 'TON_SUPABASE_ANON_KEY';
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-  const modeEleveBtn = document.getElementById('modeEleveBtn');
-  const modeEnseignantBtn = document.getElementById('modeEnseignantBtn');
-  const enseignantPanel = document.getElementById('enseignantPanel');
-  const ajouterFicheBtn = document.getElementById('ajouterFicheBtn');
-  const fichesContainer = document.getElementById('fichesContainer');
-
-  modeEleveBtn.onclick = () => {
-    enseignantPanel.style.display = 'none';
-  }
-
-  modeEnseignantBtn.onclick = () => {
-    const mdp = prompt("Mot de passe enseignant ?");
-    if(mdp === "TonMotDePasse") {
-      enseignantPanel.style.display = 'block';
-    } else {
-      alert("Mot de passe incorrect !");
-    }
-  }
-
-  ajouterFicheBtn.onclick = async () => {
-    const titre = document.getElementById('titreFiche').value;
-    const contenu = document.getElementById('contenuFiche').value;
-    if(!titre || !contenu) return alert("Remplis tous les champs !");
-    
-    const { data, error } = await supabase.from('fiches').insert([{ titre, contenu }]);
-    if(error) return alert("Erreur : " + error.message);
-    
-    document.getElementById('titreFiche').value = '';
-    document.getElementById('contenuFiche').value = '';
-    chargerFiches();
-  }
-
-  async function chargerFiches() {
-    const { data } = await supabase.from('fiches').select('*').order('id', { ascending: true });
-    fichesContainer.innerHTML = '';
-    data.forEach(fiche => {
-      const div = document.createElement('div');
-      div.className = 'fiche';
-      div.innerHTML = `<h3>${fiche.titre}</h3><p>${fiche.contenu}</p>`;
-      fichesContainer.appendChild(div);
-    });
-    MathJax.typeset();
-  }
-
-  chargerFiches();
-</script>
-
-</body>
-</html>
+          <!-- Flashcard -->
+          <div class="w-full max-w-2xl mx-auto" style="min-height: 450px;">
+            <div id="question-card" class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 flex flex-col items-center text-center" style="min-height: 450px;">
+              <div class="flex-1 flex flex-col items-center justify-center w-full overflow-y-auto px-2">
+                <div class="text-sm text-slate-500 mb-3 uppercase tracking-wider">Question</div>
+                <div id="flashcard-image-container" class="mb-4 hidden w-full flex flex-col items-center justify-center">
+                  <img id="flashcard-image" src="" alt="Image de la question" loading="lazy" class="max-w-full max-h-64 rounded-lg shadow-lg" onerror="this.style.display='none'; const fallback=this.nextElementSibling; if(fallback){fallback.classList.remove('hidden');}" />
+                  <div class="text-slate-400 text-sm hidden">Image non disponible</div>
+                </div>
+                <p id="flashcard-question" class="text-lg text-white font-medium mb-6"></p>
+                <!-- Answer Input -->
+                <div class="w-full max-w-md mt-4">
+                  <label for="student-answer" class="block text-sm text-slate-400 mb-2">Votre réponse :</label>
+                  <input type="text" id="student-answer" class="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-center" placeholder="Entrez votre réponse..." />
+                  <button id="check-answer-btn" class="w-full mt-3 py-3 px-6 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold hover:from-violet-500 hover:to-fuchsia-500 transition-all duration-300">Vérifier</button>
+                </div>
+              </div>
+              <!-- Feedback Message -->
