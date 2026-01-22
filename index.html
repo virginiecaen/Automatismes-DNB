@@ -1,61 +1,923 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <title>Automatismes DNB – Maths</title>
-
-  <!-- MathLive : saisie mathématique -->
-  <script src="https://unpkg.com/mathlive"></script>
-
-  <!-- MathJax : affichage -->
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-  <!-- Supabase -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-
+<!doctype html>
+<html lang="fr" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automatismes en 3e</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="/_sdk/data_sdk.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      max-width: 800px;
-      margin: auto;
-      padding: 20px;
+      box-sizing: border-box;
     }
-    .card {
-      border: 1px solid #ccc;
-      padding: 15px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+    * {
+      font-family: 'Outfit', sans-serif;
     }
-    math-field {
-      width: 100%;
-      font-size: 1.2em;
-      margin-top: 10px;
+    .mono {
+      font-family: 'JetBrains Mono', monospace;
     }
-    button {
-      margin-top: 10px;
-      padding: 8px 12px;
+
+    .fade-in {
+      animation: fadeIn 0.3s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-up {
+      animation: slideUp 0.4s ease-out;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .theme-pill {
+      transition: all 0.2s ease;
+    }
+    .theme-pill:hover {
+      transform: translateY(-2px);
     }
   </style>
-</head>
-
-<body>
-  <h1>Réviser les automatismes – DNB</h1>
-
-  <div id="card" class="card">
-    <div id="question"></div>
-
-    <p><strong>Ta réponse :</strong></p>
-    <math-field id="student-answer"></math-field>
-
-    <br>
-    <button onclick="showCorrection()">Voir la correction</button>
-
-    <p id="correction" style="display:none;">
-      <strong>Correction :</strong>
-      <span id="answer"></span>
-    </p>
+  <style>@view-transition { navigation: auto; }</style>
+ </head>
+ <body class="h-full">
+  <div id="app" class="h-full overflow-auto" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);"><!-- Header -->
+   <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50">
+    <div class="max-w-6xl mx-auto px-4 py-4">
+     <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+       <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-fuchsia-500 flex items-center justify-center">
+        <svg class="w-6 h-6 text-white" fill="currentColor" viewbox="0 0 24 24"><path d="M12 15.5c-1.93 0-3.5-1.57-3.5-3.5s1.57-3.5 3.5-3.5 3.5 1.57 3.5 3.5-1.57 3.5-3.5 3.5zm0-5c-.83 0-1.5.67-1.5 1.5s.67 1.5 1.5 1.5 1.5-.67 1.5-1.5-.67-1.5-1.5-1.5zm7.43-2.53c.04-.32.07-.64.07-.97 0-.33-.03-.66-.07-1l2.11-1.63c.19-.15.24-.42.12-.64l-2-3.46c-.12-.22-.39-.31-.61-.22l-2.49 1c-.52-.39-1.06-.73-1.69-.98l-.37-2.65c-.04-.24-.25-.42-.5-.42h-4c-.25 0-.46.18-.5.42l-.37 2.65c-.63.25-1.17.59-1.69.98l-2.49-1c-.22-.09-.49 0-.61.22l-2 3.46c-.13.22-.07.49.12.64L4.57 11c-.04.34-.07.67-.07 1 0 .33.03.65.07.97l-2.11 1.66c-.19.15-.25.42-.12.64l2 3.46c.12.22.39.3.61.22l2.49-1.01c.52.4 1.06.74 1.69.99l.37 2.65c.04.24.25.42.5.42h4c.25 0 .46-.18.5-.42l.37-2.65c.63-.26 1.17-.59 1.69-.99l2.49 1.01c.22.08.49 0 .61-.22l2-3.46c.12-.22.07-.49-.12-.64l-2.11-1.66z" />
+        </svg>
+       </div>
+       <div>
+        <h1 id="main-title" class="text-xl font-bold text-white">Automatismes en 3e</h1>
+        <p id="subtitle" class="text-sm text-slate-400">Fiches de révision</p>
+       </div>
+      </div>
+      <div class="flex items-center gap-3"><span id="mode-label" class="text-sm font-medium text-slate-300">Mode Élève</span> <button id="mode-toggle" class="relative w-14 h-7 rounded-full bg-slate-700 transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-violet-400 focus:ring-offset-2 focus:ring-offset-slate-900"> <span id="toggle-dot" class="absolute left-1 top-1 w-5 h-5 rounded-full bg-white shadow-lg transform transition-transform duration-300 flex items-center justify-center text-xs"> 🎓 </span> </button>
+      </div>
+     </div>
+    </div>
+   </header><!-- Password Modal -->
+   <div id="password-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="modal-backdrop"></div>
+    <div class="relative bg-slate-900 rounded-2xl p-6 max-w-sm w-full border border-slate-700 shadow-2xl">
+     <h3 class="text-lg font-semibold text-white mb-4">Mode Enseignant</h3>
+     <form id="password-form"><label for="password-input" class="block text-sm text-slate-400 mb-2">Entrez le mot de passe :</label> <input type="password" id="password-input" class="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent mb-4" placeholder="Mot de passe">
+      <div id="password-error" class="hidden text-red-400 text-sm mb-3">
+       ❌ Mot de passe incorrect
+      </div>
+      <div class="flex gap-3"><button type="button" id="cancel-password" class="flex-1 py-2 px-4 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"> Annuler </button> <button type="submit" class="flex-1 py-2 px-4 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white hover:from-violet-500 hover:to-fuchsia-500 transition-colors"> Valider </button>
+      </div>
+     </form>
+    </div>
+   </div><!-- Main Content -->
+   <main class="max-w-6xl mx-auto px-4 py-8"><!-- STUDENT MODE -->
+    <div id="student-mode"><!-- Theme Selection -->
+     <section class="text-center slide-up">
+      <h2 class="text-2xl font-bold text-white mb-2">Choisissez un thème</h2>
+      <p class="text-slate-400 mb-4">Sélectionnez un thème pour commencer à réviser</p>
+      <p class="text-slate-500 text-sm mb-6">💡 Astuce : Utilisez le bouton "Mélanger" pour réviser dans un ordre aléatoire !</p>
+      <div id="student-themes" class="grid grid-cols-2 md:grid-cols-5 gap-4"><button data-theme="calcul" class="student-theme-btn group p-6 rounded-2xl bg-blue-500/10 border-2 border-blue-500/30 hover:border-blue-400 hover:bg-blue-500/20 transition-all duration-300">
+        <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">
+         🔢
+        </div>
+        <div class="text-blue-300 font-medium">
+         Calcul
+        </div>
+        <div class="text-blue-400/60 text-xs mt-1" data-count="calcul">
+         0 fiches
+        </div></button> <button data-theme="geometrie" class="student-theme-btn group p-6 rounded-2xl bg-purple-500/10 border-2 border-purple-500/30 hover:border-purple-400 hover:bg-purple-500/20 transition-all duration-300">
+        <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">
+         📐
+        </div>
+        <div class="text-purple-300 font-medium">
+         Géométrie
+        </div>
+        <div class="text-purple-400/60 text-xs mt-1" data-count="geometrie">
+         0 fiches
+        </div></button> <button data-theme="grandeurs" class="student-theme-btn group p-6 rounded-2xl bg-amber-500/10 border-2 border-amber-500/30 hover:border-amber-400 hover:bg-amber-500/20 transition-all duration-300">
+        <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">
+         📏
+        </div>
+        <div class="text-amber-300 font-medium">
+         Grandeurs
+        </div>
+        <div class="text-amber-400/60 text-xs mt-1" data-count="grandeurs">
+         0 fiches
+        </div></button> <button data-theme="donnees" class="student-theme-btn group p-6 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/30 hover:border-emerald-400 hover:bg-emerald-500/20 transition-all duration-300">
+        <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">
+         📊
+        </div>
+        <div class="text-emerald-300 font-medium">
+         Données
+        </div>
+        <div class="text-emerald-400/60 text-xs mt-1" data-count="donnees">
+         0 fiches
+        </div></button> <button data-theme="fonctions" class="student-theme-btn group p-6 rounded-2xl bg-rose-500/10 border-2 border-rose-500/30 hover:border-rose-400 hover:bg-rose-500/20 transition-all duration-300">
+        <div class="text-4xl mb-2 group-hover:scale-110 transition-transform">
+         📈
+        </div>
+        <div class="text-rose-300 font-medium">
+         Fonctions
+        </div>
+        <div class="text-rose-400/60 text-xs mt-1" data-count="fonctions">
+         0 fiches
+        </div></button>
+      </div><!-- Random Theme Button -->
+      <div class="mt-8"><button id="random-theme-btn" class="group px-8 py-4 rounded-2xl bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 border-2 border-violet-500/40 hover:border-violet-400 hover:from-violet-500/30 hover:to-fuchsia-500/30 transition-all duration-300 inline-flex items-center gap-3">
+        <div class="text-3xl group-hover:scale-110 transition-transform">
+         🎲
+        </div>
+        <div>
+         <div class="text-violet-300 font-semibold text-lg">
+          Fiches aléatoires
+         </div>
+         <div class="text-violet-400/60 text-xs" id="random-count">
+          Tous les thèmes mélangés
+         </div>
+        </div></button>
+      </div>
+     </section><!-- Flashcard View -->
+     <section id="flashcard-view" class="hidden">
+      <div class="flex items-center justify-between mb-6"><button id="back-to-themes" class="flex items-center gap-2 text-slate-400 hover:text-white transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg> Retour aux thèmes </button>
+       <div class="flex items-center gap-2"><span id="current-theme-badge" class="px-3 py-1 rounded-full text-sm font-medium"></span> <span id="card-progress" class="text-slate-400 text-sm mono"></span>
+       </div>
+      </div><!-- Flashcard -->
+      <div class="w-full max-w-2xl mx-auto" style="min-height: 450px;">
+       <div id="question-card" class="rounded-2xl bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 p-6 flex flex-col items-center text-center" style="min-height: 450px;">
+        <div class="flex-1 flex flex-col items-center justify-center w-full overflow-y-auto px-2">
+         <div class="text-sm text-slate-500 mb-3 uppercase tracking-wider">
+          Question
+         </div>
+         <div id="flashcard-image-container" class="mb-4 hidden w-full flex justify-center"><img id="flashcard-image" src="" alt="Image de la question" loading="lazy" class="max-w-full max-h-64 rounded-lg shadow-lg" onerror="this.style.display='none'; console.log('Image failed to load');">
+         </div>
+         <p id="flashcard-question" class="text-lg text-white font-medium mb-6"></p><!-- Answer Input -->
+         <div class="w-full max-w-md mt-4"><label for="student-answer" class="block text-sm text-slate-400 mb-2">Votre réponse :</label> <input type="text" id="student-answer" class="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-center" placeholder="Entrez votre réponse..."> <button id="check-answer-btn" class="w-full mt-3 py-3 px-6 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold hover:from-violet-500 hover:to-fuchsia-500 transition-all duration-300"> Vérifier </button>
+         </div>
+        </div><!-- Feedback Message -->
+        <div id="feedback-message" class="hidden mt-4 p-4 rounded-xl w-full max-w-md"></div>
+       </div><!-- Answer Card (hidden by default) -->
+       <div id="answer-card" class="hidden rounded-2xl border p-6 flex flex-col items-center justify-center text-center" style="min-height: 450px;">
+        <div id="answer-emoji" class="text-6xl mb-4"></div>
+        <div id="answer-status" class="text-sm uppercase tracking-wider mb-3"></div>
+        <div class="space-y-3 w-full max-w-md">
+         <div id="student-answer-display" class="p-3 rounded-lg"></div>
+         <div class="text-sm text-slate-400">
+          Réponse attendue :
+         </div>
+         <p id="flashcard-answer" class="text-lg text-white font-medium"></p>
+        </div><button id="next-question-btn" class="mt-6 py-3 px-6 rounded-xl bg-slate-700 text-white hover:bg-slate-600 transition-colors"> Question suivante </button>
+       </div>
+      </div><!-- Navigation -->
+      <div class="flex items-center justify-center gap-4 mt-8"><button id="prev-card" class="p-3 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+        </svg></button> <button id="shuffle-cards" class="px-6 py-3 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </svg> Mélanger </button> <button id="next-card" class="p-3 rounded-xl bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors disabled:opacity-30 disabled:cursor-not-allowed">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+        </svg></button>
+      </div>
+     </section><!-- Empty Student State -->
+     <div id="student-empty" class="hidden text-center py-12">
+      <div class="text-6xl mb-4">
+       📚
+      </div>
+      <p class="text-slate-400 mb-4">Aucune fiche disponible pour ce thème.</p><button id="back-from-empty" class="mt-6 px-6 py-3 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors flex items-center gap-2 mx-auto">
+       <svg class="w-5 h-5" fill="none" stroke="currentColor" viewbox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+       </svg> Retour aux thèmes </button>
+     </div>
+    </div><!-- TEACHER MODE -->
+    <div id="teacher-mode" class="hidden"><!-- Add Card Form -->
+     <section class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 border border-slate-700/50 slide-up mb-8">
+      <h2 class="text-lg font-semibold text-white flex items-center gap-2 mb-4"><span class="w-8 h-8 rounded-lg bg-violet-500/20 flex items-center justify-center">➕</span> Créer une nouvelle fiche</h2>
+      <form id="add-card-form" class="space-y-4">
+       <div><label class="block text-sm font-medium text-slate-300 mb-2">Thème</label>
+        <div id="theme-selector" class="flex flex-wrap gap-2"><button type="button" data-theme="calcul" class="theme-pill px-4 py-2 rounded-full text-sm font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30 hover:bg-blue-500/30"> 🔢 Calcul </button> <button type="button" data-theme="geometrie" class="theme-pill px-4 py-2 rounded-full text-sm font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30 hover:bg-purple-500/30"> 📐 Géométrie </button> <button type="button" data-theme="grandeurs" class="theme-pill px-4 py-2 rounded-full text-sm font-medium bg-amber-500/20 text-amber-300 border border-amber-500/30 hover:bg-amber-500/30"> 📏 Grandeurs </button> <button type="button" data-theme="donnees" class="theme-pill px-4 py-2 rounded-full text-sm font-medium bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-500/30"> 📊 Données </button> <button type="button" data-theme="fonctions" class="theme-pill px-4 py-2 rounded-full text-sm font-medium bg-rose-500/20 text-rose-300 border border-rose-500/30 hover:bg-rose-500/30"> 📈 Fonctions </button>
+        </div><input type="hidden" id="selected-theme" value="">
+       </div>
+       <div><label for="question" class="block text-sm font-medium text-slate-300 mb-2">Question</label> <textarea id="question" rows="2" class="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none" placeholder="Ex: Calculer 3² + 4²"></textarea>
+       </div>
+       <div><label for="answer" class="block text-sm font-medium text-slate-300 mb-2">Réponse</label> <textarea id="answer" rows="2" class="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent resize-none" placeholder="Ex: 9 + 16 = 25"></textarea>
+       </div>
+       <div><label for="image-url" class="block text-sm font-medium text-slate-300 mb-2 flex items-center gap-2"> 📷 Image (optionnel) </label> <input type="url" id="image-url" class="w-full px-4 py-3 rounded-xl bg-slate-900/50 border border-slate-600 text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent" placeholder="https://exemple.com/image.jpg">
+        <p class="text-xs text-slate-400 mt-1">Collez l'URL complète d'une image (doit commencer par https://)</p>
+       </div><button type="submit" id="submit-btn" class="w-full py-3 px-6 rounded-xl bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-semibold hover:from-violet-500 hover:to-fuchsia-500 transition-all duration-300 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"> <span id="submit-text">Ajouter la fiche</span> <span id="submit-spinner" class="hidden">
+         <svg class="animate-spin h-5 w-5" viewbox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle> <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+         </svg></span> </button>
+      </form>
+      <div id="form-message" class="mt-4 hidden"></div>
+      <div id="limit-warning" class="mt-4 hidden p-3 rounded-lg bg-amber-500/20 border border-amber-500/30 text-amber-300 text-sm">
+       ⚠️ Limite de 999 fiches atteinte. Supprimez des fiches pour en ajouter de nouvelles.
+      </div>
+     </section><!-- Cards Management -->
+     <section>
+      <div class="flex items-center justify-between mb-4">
+       <h2 class="text-lg font-semibold text-white flex items-center gap-2"><span class="w-8 h-8 rounded-lg bg-slate-700 flex items-center justify-center">📚</span> Mes fiches (<span id="cards-count">0</span>)</h2><!-- Theme Filter -->
+       <div id="theme-filter" class="flex flex-wrap gap-2"><button data-filter="all" class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-700 text-white"> Tous </button> <button data-filter="calcul" class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700"> 🔢 </button> <button data-filter="geometrie" class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700"> 📐 </button> <button data-filter="grandeurs" class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700"> 📏 </button> <button data-filter="donnees" class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700"> 📊 </button> <button data-filter="fonctions" class="filter-btn px-3 py-1.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 hover:bg-slate-700"> 📈 </button>
+       </div>
+      </div>
+      <div id="cards-list" class="grid gap-4 md:grid-cols-2"><!-- Cards will be rendered here -->
+      </div>
+      <div id="teacher-empty" class="hidden text-center py-12">
+       <div class="text-6xl mb-4">
+        📝
+       </div>
+       <p class="text-slate-300">Aucune fiche créée pour le moment.</p>
+       <p class="text-slate-400 text-sm mt-2">Commencez par créer votre première fiche ci-dessus !</p>
+      </div>
+     </section>
+    </div>
+   </main><!-- Delete Confirmation Modal -->
+   <div id="delete-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="delete-modal-backdrop"></div>
+    <div class="relative bg-slate-900 rounded-2xl p-6 max-w-sm w-full border border-slate-700 shadow-2xl">
+     <h3 class="text-lg font-semibold text-white mb-2">Supprimer cette fiche ?</h3>
+     <p class="text-slate-300 text-sm mb-6">Cette action est irréversible.</p>
+     <div class="flex gap-3"><button id="cancel-delete" class="flex-1 py-2 px-4 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition-colors"> Annuler </button> <button id="confirm-delete" class="flex-1 py-2 px-4 rounded-xl bg-red-600 text-white hover:bg-red-500 transition-colors"> Supprimer </button>
+     </div>
+    </div>
+   </div>
   </div>
+  <script>
+    // State
+    let allCards = [];
+    let filteredCards = [];
+    let currentFilter = 'all';
+    let selectedTheme = '';
+    let cardToDelete = null;
+    let isTeacherMode = false;
+    
+    // Student mode state
+    let currentStudentTheme = '';
+    let studentCards = [];
+    let currentCardIndex = 0;
 
-  <script src="app.js"></script>
-</body>
+    // Password
+    const TEACHER_PASSWORD = 'Fyvy2907!';
+
+    // Default Config
+    const defaultConfig = {
+      main_title: 'Automatismes en 3e',
+      subtitle: 'Fiches de révision',
+      background_color: '#0f172a',
+      surface_color: '#1e293b',
+      text_color: '#f8fafc',
+      primary_color: '#8b5cf6',
+      secondary_color: '#64748b',
+      font_family: 'Outfit'
+    };
+
+    let config = { ...defaultConfig };
+
+    // Theme config
+    const themeConfig = {
+      calcul: { emoji: '🔢', color: 'blue', label: 'Calcul' },
+      geometrie: { emoji: '📐', color: 'purple', label: 'Géométrie' },
+      grandeurs: { emoji: '📏', color: 'amber', label: 'Grandeurs' },
+      donnees: { emoji: '📊', color: 'emerald', label: 'Organisation et gestion de données' },
+      fonctions: { emoji: '📈', color: 'rose', label: 'Fonctions' }
+    };
+
+    // DOM Elements
+    const studentMode = document.getElementById('student-mode');
+    const teacherMode = document.getElementById('teacher-mode');
+    const passwordModal = document.getElementById('password-modal');
+    const deleteModal = document.getElementById('delete-modal');
+
+    // Initialize Element SDK
+    async function initElementSdk() {
+      if (window.elementSdk) {
+        await window.elementSdk.init({
+          defaultConfig,
+          onConfigChange: async (newConfig) => {
+            config = { ...defaultConfig, ...newConfig };
+            applyConfig();
+          },
+          mapToCapabilities: (cfg) => ({
+            recolorables: [
+              {
+                get: () => cfg.background_color || defaultConfig.background_color,
+                set: (v) => { cfg.background_color = v; window.elementSdk.setConfig({ background_color: v }); }
+              },
+              {
+                get: () => cfg.surface_color || defaultConfig.surface_color,
+                set: (v) => { cfg.surface_color = v; window.elementSdk.setConfig({ surface_color: v }); }
+              },
+              {
+                get: () => cfg.text_color || defaultConfig.text_color,
+                set: (v) => { cfg.text_color = v; window.elementSdk.setConfig({ text_color: v }); }
+              },
+              {
+                get: () => cfg.primary_color || defaultConfig.primary_color,
+                set: (v) => { cfg.primary_color = v; window.elementSdk.setConfig({ primary_color: v }); }
+              },
+              {
+                get: () => cfg.secondary_color || defaultConfig.secondary_color,
+                set: (v) => { cfg.secondary_color = v; window.elementSdk.setConfig({ secondary_color: v }); }
+              }
+            ],
+            borderables: [],
+            fontEditable: {
+              get: () => cfg.font_family || defaultConfig.font_family,
+              set: (v) => { cfg.font_family = v; window.elementSdk.setConfig({ font_family: v }); }
+            },
+            fontSizeable: undefined
+          }),
+          mapToEditPanelValues: (cfg) => new Map([
+            ['main_title', cfg.main_title || defaultConfig.main_title],
+            ['subtitle', cfg.subtitle || defaultConfig.subtitle]
+          ])
+        });
+        config = { ...defaultConfig, ...window.elementSdk.config };
+        applyConfig();
+      }
+    }
+
+    // Apply config to UI
+    function applyConfig() {
+      const mainTitle = document.getElementById('main-title');
+      const subtitle = document.getElementById('subtitle');
+      const app = document.getElementById('app');
+
+      mainTitle.textContent = config.main_title || defaultConfig.main_title;
+      subtitle.textContent = config.subtitle || defaultConfig.subtitle;
+
+      const fontFamily = `${config.font_family || defaultConfig.font_family}, sans-serif`;
+      document.body.style.fontFamily = fontFamily;
+      
+      app.style.background = `linear-gradient(135deg, ${config.background_color} 0%, ${config.surface_color} 50%, ${config.background_color} 100%)`;
+    }
+
+    // Initialize Data SDK
+    const dataHandler = {
+      onDataChanged(data) {
+        allCards = data;
+        updateStudentThemeCounts();
+        if (isTeacherMode) {
+          updateCardsDisplay();
+        }
+      }
+    };
+
+    async function initDataSdk() {
+      if (window.dataSdk) {
+        const result = await window.dataSdk.init(dataHandler);
+        if (!result.isOk) {
+          console.error('Failed to initialize Data SDK');
+        }
+      }
+    }
+
+    // Update mode button UI
+    function updateModeButton() {
+      const modeLabel = document.getElementById('mode-label');
+      const toggleDot = document.getElementById('toggle-dot');
+      const modeToggle = document.getElementById('mode-toggle');
+      
+      if (isTeacherMode) {
+        modeLabel.textContent = 'Mode Enseignant';
+        toggleDot.textContent = '👨‍🏫';
+        toggleDot.classList.add('translate-x-7');
+        modeToggle.classList.remove('bg-slate-700');
+        modeToggle.classList.add('bg-violet-600');
+      } else {
+        modeLabel.textContent = 'Mode Élève';
+        toggleDot.textContent = '🎓';
+        toggleDot.classList.remove('translate-x-7');
+        modeToggle.classList.add('bg-slate-700');
+        modeToggle.classList.remove('bg-violet-600');
+      }
+    }
+
+    // Mode toggle
+    document.getElementById('mode-toggle').addEventListener('click', () => {
+      if (!isTeacherMode) {
+        passwordModal.classList.remove('hidden');
+        document.getElementById('password-input').focus();
+      } else {
+        isTeacherMode = false;
+        teacherMode.classList.add('hidden');
+        studentMode.classList.remove('hidden');
+        showThemeSelection();
+        updateModeButton();
+      }
+    });
+
+    // Password form
+    document.getElementById('password-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const password = document.getElementById('password-input').value;
+      
+      if (password === TEACHER_PASSWORD) {
+        isTeacherMode = true;
+        passwordModal.classList.add('hidden');
+        studentMode.classList.add('hidden');
+        teacherMode.classList.remove('hidden');
+        document.getElementById('password-input').value = '';
+        document.getElementById('password-error').classList.add('hidden');
+        updateModeButton();
+        updateCardsDisplay();
+      } else {
+        document.getElementById('password-error').classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('cancel-password').addEventListener('click', () => {
+      passwordModal.classList.add('hidden');
+      document.getElementById('password-input').value = '';
+      document.getElementById('password-error').classList.add('hidden');
+    });
+
+    document.getElementById('modal-backdrop').addEventListener('click', () => {
+      passwordModal.classList.add('hidden');
+      document.getElementById('password-input').value = '';
+      document.getElementById('password-error').classList.add('hidden');
+    });
+
+    // ===== STUDENT MODE FUNCTIONS =====
+
+    // Update student theme counts
+    function updateStudentThemeCounts() {
+      Object.keys(themeConfig).forEach(theme => {
+        const count = allCards.filter(c => c.theme === theme).length;
+        const countEl = document.querySelector(`[data-count="${theme}"]`);
+        if (countEl) {
+          countEl.textContent = `${count} fiche${count > 1 ? 's' : ''}`;
+        }
+      });
+      
+      const randomCountEl = document.getElementById('random-count');
+      if (randomCountEl) {
+        const totalCount = allCards.length;
+        randomCountEl.textContent = `${totalCount} fiche${totalCount > 1 ? 's' : ''} • Tous les thèmes mélangés`;
+      }
+    }
+
+    // Student theme selection
+    document.getElementById('student-themes').addEventListener('click', (e) => {
+      const btn = e.target.closest('.student-theme-btn');
+      if (!btn) return;
+
+      currentStudentTheme = btn.dataset.theme;
+      studentCards = allCards.filter(c => c.theme === currentStudentTheme);
+      
+      if (studentCards.length === 0) {
+        document.getElementById('student-empty').classList.remove('hidden');
+        document.getElementById('flashcard-view').classList.add('hidden');
+        document.querySelector('#student-themes').parentElement.classList.add('hidden');
+      } else {
+        currentCardIndex = 0;
+        showFlashcard();
+      }
+    });
+
+    // Random theme button
+    document.getElementById('random-theme-btn').addEventListener('click', () => {
+      if (allCards.length === 0) {
+        document.getElementById('student-empty').classList.remove('hidden');
+        document.getElementById('flashcard-view').classList.add('hidden');
+        document.querySelector('#student-themes').parentElement.classList.add('hidden');
+        return;
+      }
+
+      currentStudentTheme = 'random';
+      studentCards = [...allCards];
+      
+      for (let i = studentCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [studentCards[i], studentCards[j]] = [studentCards[j], studentCards[i]];
+      }
+      
+      currentCardIndex = 0;
+      showFlashcard();
+    });
+
+    // Show theme selection
+    function showThemeSelection() {
+      document.querySelector('#student-themes').parentElement.classList.remove('hidden');
+      document.getElementById('flashcard-view').classList.add('hidden');
+      document.getElementById('student-empty').classList.add('hidden');
+    }
+
+    // Show flashcard
+    function showFlashcard() {
+      document.querySelector('#student-themes').parentElement.classList.add('hidden');
+      document.getElementById('flashcard-view').classList.remove('hidden');
+      document.getElementById('student-empty').classList.add('hidden');
+
+      const badge = document.getElementById('current-theme-badge');
+      
+      if (currentStudentTheme === 'random') {
+        badge.className = 'px-3 py-1 rounded-full text-sm font-medium bg-gradient-to-r from-violet-500/20 to-fuchsia-500/20 text-violet-300 border border-violet-500/30';
+        badge.innerHTML = '🎲 Aléatoire';
+      } else {
+        const theme = themeConfig[currentStudentTheme];
+        badge.className = `px-3 py-1 rounded-full text-sm font-medium bg-${theme.color}-500/20 text-${theme.color}-300 border border-${theme.color}-500/30`;
+        badge.innerHTML = `${theme.emoji} ${theme.label}`;
+      }
+
+      updateFlashcard();
+    }
+
+    // Update flashcard
+    function updateFlashcard() {
+      const card = studentCards[currentCardIndex];
+      document.getElementById('flashcard-question').textContent = card.question;
+      document.getElementById('flashcard-answer').textContent = card.answer;
+      document.getElementById('card-progress').textContent = `${currentCardIndex + 1} / ${studentCards.length}`;
+      
+      document.getElementById('question-card').classList.remove('hidden');
+      document.getElementById('answer-card').classList.add('hidden');
+      document.getElementById('student-answer').value = '';
+      document.getElementById('feedback-message').classList.add('hidden');
+
+      const imageContainer = document.getElementById('flashcard-image-container');
+      const imageElement = document.getElementById('flashcard-image');
+      
+      if (card.imageUrl && card.imageUrl.trim() !== '') {
+        imageElement.src = card.imageUrl;
+        imageContainer.classList.remove('hidden');
+      } else {
+        imageContainer.classList.add('hidden');
+        imageElement.src = '';
+      }
+
+      document.getElementById('prev-card').disabled = currentCardIndex === 0;
+      document.getElementById('next-card').disabled = currentCardIndex === studentCards.length - 1;
+    }
+
+    // Normalize answer for comparison
+    function normalizeAnswer(answer) {
+      return answer.trim().toLowerCase().replace(/\s+/g, ' ');
+    }
+
+    // Check answer
+    document.getElementById('check-answer-btn').addEventListener('click', () => {
+      const card = studentCards[currentCardIndex];
+      const studentAnswer = document.getElementById('student-answer').value;
+      const feedbackMessage = document.getElementById('feedback-message');
+      
+      if (!studentAnswer.trim()) {
+        feedbackMessage.className = 'mt-4 p-4 rounded-xl w-full max-w-md bg-amber-500/20 border border-amber-500/30 text-amber-300';
+        feedbackMessage.textContent = '⚠️ Veuillez entrer une réponse';
+        feedbackMessage.classList.remove('hidden');
+        return;
+      }
+
+      const normalizedStudent = normalizeAnswer(studentAnswer);
+      const normalizedCorrect = normalizeAnswer(card.answer);
+      const isCorrect = normalizedStudent === normalizedCorrect;
+
+      document.getElementById('question-card').classList.add('hidden');
+      document.getElementById('answer-card').classList.remove('hidden');
+
+      const answerCard = document.getElementById('answer-card');
+      const answerEmoji = document.getElementById('answer-emoji');
+      const answerStatus = document.getElementById('answer-status');
+      const studentAnswerDisplay = document.getElementById('student-answer-display');
+
+      if (isCorrect) {
+        const emojis = ['🎉', '✨', '🌟', '🎊', '🏆', '👏', '💯', '🔥', '⭐', '🎯'];
+        const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
+        
+        answerCard.className = 'rounded-2xl border border-emerald-500/30 p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-emerald-900/30 to-emerald-800/30';
+        answerEmoji.textContent = randomEmoji;
+        answerStatus.className = 'text-sm text-emerald-400 uppercase tracking-wider mb-3';
+        answerStatus.textContent = 'Bravo ! Réponse correcte !';
+        studentAnswerDisplay.className = 'p-3 rounded-lg bg-emerald-500/20 border border-emerald-500/30 text-emerald-300';
+        studentAnswerDisplay.textContent = `Votre réponse : ${studentAnswer}`;
+      } else {
+        answerCard.className = 'rounded-2xl border border-orange-500/30 p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-orange-900/30 to-orange-800/30';
+        answerEmoji.textContent = '🤔';
+        answerStatus.className = 'text-sm text-orange-400 uppercase tracking-wider mb-3';
+        answerStatus.textContent = 'Pas tout à fait...';
+        studentAnswerDisplay.className = 'p-3 rounded-lg bg-orange-500/20 border border-orange-500/30 text-orange-300';
+        studentAnswerDisplay.textContent = `Votre réponse : ${studentAnswer}`;
+      }
+    });
+
+    // Next question button
+    document.getElementById('next-question-btn').addEventListener('click', () => {
+      if (currentCardIndex < studentCards.length - 1) {
+        currentCardIndex++;
+        updateFlashcard();
+      } else {
+        currentCardIndex = 0;
+        updateFlashcard();
+      }
+    });
+
+    // Navigation - Previous card
+    document.getElementById('prev-card').addEventListener('click', () => {
+      if (currentCardIndex > 0) {
+        currentCardIndex--;
+        updateFlashcard();
+      }
+    });
+
+    // Navigation - Next card
+    document.getElementById('next-card').addEventListener('click', () => {
+      const questionCard = document.getElementById('question-card');
+      const answerCard = document.getElementById('answer-card');
+      
+      if (!answerCard.classList.contains('hidden')) {
+        if (currentCardIndex < studentCards.length - 1) {
+          currentCardIndex++;
+          updateFlashcard();
+        }
+      } else {
+        questionCard.classList.add('hidden');
+        answerCard.classList.remove('hidden');
+        
+        answerCard.className = 'rounded-2xl border border-violet-500/30 p-6 flex flex-col items-center justify-center text-center bg-gradient-to-br from-violet-900/30 to-violet-800/30';
+        document.getElementById('answer-emoji').textContent = '👀';
+        document.getElementById('answer-status').className = 'text-sm text-violet-400 uppercase tracking-wider mb-3';
+        document.getElementById('answer-status').textContent = 'Réponse';
+        document.getElementById('student-answer-display').className = 'hidden';
+      }
+    });
+
+    // Shuffle
+    document.getElementById('shuffle-cards').addEventListener('click', () => {
+      for (let i = studentCards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [studentCards[i], studentCards[j]] = [studentCards[j], studentCards[i]];
+      }
+      currentCardIndex = 0;
+      updateFlashcard();
+    });
+
+    // Back to themes
+    document.getElementById('back-to-themes').addEventListener('click', () => {
+      showThemeSelection();
+    });
+
+    // Back from empty state
+    document.getElementById('back-from-empty').addEventListener('click', () => {
+      showThemeSelection();
+    });
+
+    // ===== TEACHER MODE FUNCTIONS =====
+
+    // Update cards display
+    function updateCardsDisplay() {
+      if (currentFilter === 'all') {
+        filteredCards = [...allCards];
+      } else {
+        filteredCards = allCards.filter(card => card.theme === currentFilter);
+      }
+
+      filteredCards.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+      document.getElementById('cards-count').textContent = filteredCards.length;
+
+      const cardsList = document.getElementById('cards-list');
+      const teacherEmpty = document.getElementById('teacher-empty');
+
+      if (filteredCards.length === 0) {
+        cardsList.innerHTML = '';
+        teacherEmpty.classList.remove('hidden');
+      } else {
+        teacherEmpty.classList.add('hidden');
+        renderCards();
+      }
+
+      document.getElementById('limit-warning').classList.toggle('hidden', allCards.length < 999);
+    }
+
+    // Render cards
+    function renderCards() {
+      const cardsList = document.getElementById('cards-list');
+      const existingIds = new Set([...cardsList.children].map(el => el.dataset.cardId));
+      const newIds = new Set(filteredCards.map(card => card.id));
+
+      [...cardsList.children].forEach(el => {
+        if (!newIds.has(el.dataset.cardId)) {
+          el.remove();
+        }
+      });
+
+      filteredCards.forEach((card, index) => {
+        let cardEl = cardsList.querySelector(`[data-card-id="${card.id}"]`);
+        
+        if (!cardEl) {
+          cardEl = createCardElement(card);
+          if (index === 0) {
+            cardsList.prepend(cardEl);
+          } else {
+            const prevCard = filteredCards[index - 1];
+            const prevEl = cardsList.querySelector(`[data-card-id="${prevCard.id}"]`);
+            if (prevEl) {
+              prevEl.after(cardEl);
+            } else {
+              cardsList.appendChild(cardEl);
+            }
+          }
+        } else {
+          updateCardElement(cardEl, card);
+        }
+      });
+    }
+
+    // Create card element
+    function createCardElement(card) {
+      const theme = themeConfig[card.theme] || themeConfig.calcul;
+      const div = document.createElement('div');
+      div.dataset.cardId = card.id;
+      div.className = 'bg-slate-800/50 backdrop-blur rounded-xl p-4 border border-slate-700/50 fade-in';
+      
+      const imageHtml = card.imageUrl ? `
+        <div class="mb-3">
+          <img src="${escapeHtml(card.imageUrl)}" alt="Image de la question" loading="lazy" class="w-full h-48 object-cover rounded-lg" onerror="this.style.display='none'; this.alt='Image non disponible';">
+        </div>
+      ` : '';
+      
+      div.innerHTML = `
+        <div class="flex items-start justify-between mb-3">
+          <span class="px-3 py-1 rounded-full text-xs font-medium bg-${theme.color}-500/20 text-${theme.color}-300 border border-${theme.color}-500/30">
+            ${theme.emoji} ${theme.label}
+          </span>
+          <button class="delete-btn p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors" data-id="${card.__backendId}">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+            </svg>
+          </button>
+        </div>
+        ${imageHtml}
+        <div class="space-y-2">
+          <div>
+            <span class="text-xs text-slate-400 uppercase tracking-wider">Question</span>
+            <p class="text-white card-question">${escapeHtml(card.question)}</p>
+          </div>
+          <div>
+            <span class="text-xs text-slate-400 uppercase tracking-wider">Réponse</span>
+            <p class="text-slate-200 card-answer">${escapeHtml(card.answer)}</p>
+          </div>
+        </div>
+      `;
+      return div;
+    }
+
+    // Update card element
+    function updateCardElement(el, card) {
+      el.querySelector('.card-question').textContent = card.question;
+      el.querySelector('.card-answer').textContent = card.answer;
+    }
+
+    // Escape HTML
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    // Show form message
+    function showFormMessage(message, type) {
+      const msgEl = document.getElementById('form-message');
+      msgEl.className = `mt-4 p-3 rounded-lg text-sm ${type === 'error' ? 'bg-red-500/20 border border-red-500/30 text-red-300' : 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-300'}`;
+      msgEl.textContent = message;
+      msgEl.classList.remove('hidden');
+      setTimeout(() => msgEl.classList.add('hidden'), 3000);
+    }
+
+    // Theme selector
+    document.querySelectorAll('#theme-selector button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('#theme-selector button').forEach(b => {
+          b.classList.remove('ring-2', 'ring-white/50');
+        });
+        btn.classList.add('ring-2', 'ring-white/50');
+        selectedTheme = btn.dataset.theme;
+        document.getElementById('selected-theme').value = selectedTheme;
+      });
+    });
+
+    // Add card form
+    document.getElementById('add-card-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      if (allCards.length >= 999) {
+        showFormMessage('Limite de 999 fiches atteinte', 'error');
+        return;
+      }
+
+      const question = document.getElementById('question').value.trim();
+      const answer = document.getElementById('answer').value.trim();
+      const imageUrl = document.getElementById('image-url').value.trim();
+
+      if (!selectedTheme) {
+        showFormMessage('Veuillez sélectionner un thème', 'error');
+        return;
+      }
+      if (!question) {
+        showFormMessage('Veuillez entrer une question', 'error');
+        return;
+      }
+      if (!answer) {
+        showFormMessage('Veuillez entrer une réponse', 'error');
+        return;
+      }
+
+      const submitBtn = document.getElementById('submit-btn');
+      const submitText = document.getElementById('submit-text');
+      const submitSpinner = document.getElementById('submit-spinner');
+
+      submitBtn.disabled = true;
+      submitText.classList.add('hidden');
+      submitSpinner.classList.remove('hidden');
+
+      const newCard = {
+        id: Date.now().toString(),
+        theme: selectedTheme,
+        question,
+        answer,
+        imageUrl: imageUrl || '',
+        createdAt: new Date().toISOString()
+      };
+
+      if (window.dataSdk) {
+        const result = await window.dataSdk.create(newCard);
+        if (result.isOk) {
+          showFormMessage('Fiche ajoutée avec succès !', 'success');
+          document.getElementById('add-card-form').reset();
+          selectedTheme = '';
+          document.querySelectorAll('#theme-selector button').forEach(b => {
+            b.classList.remove('ring-2', 'ring-white/50');
+          });
+        } else {
+          showFormMessage('Erreur lors de l\'ajout', 'error');
+        }
+      }
+
+      submitBtn.disabled = false;
+      submitText.classList.remove('hidden');
+      submitSpinner.classList.add('hidden');
+    });
+
+    // Theme filter
+    document.getElementById('theme-filter').addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+
+      document.querySelectorAll('.filter-btn').forEach(b => {
+        b.classList.remove('bg-slate-700', 'text-white');
+        b.classList.add('bg-slate-800', 'text-slate-300');
+      });
+      btn.classList.remove('bg-slate-800', 'text-slate-300');
+      btn.classList.add('bg-slate-700', 'text-white');
+
+      currentFilter = btn.dataset.filter;
+      updateCardsDisplay();
+    });
+
+    // Delete card
+    document.getElementById('cards-list').addEventListener('click', (e) => {
+      const deleteBtn = e.target.closest('.delete-btn');
+      if (!deleteBtn) return;
+
+      const backendId = deleteBtn.dataset.id;
+      cardToDelete = allCards.find(c => c.__backendId === backendId);
+      if (cardToDelete) {
+        deleteModal.classList.remove('hidden');
+      }
+    });
+
+    document.getElementById('cancel-delete').addEventListener('click', () => {
+      deleteModal.classList.add('hidden');
+      cardToDelete = null;
+    });
+
+    document.getElementById('delete-modal-backdrop').addEventListener('click', () => {
+      deleteModal.classList.add('hidden');
+      cardToDelete = null;
+    });
+
+    document.getElementById('confirm-delete').addEventListener('click', async () => {
+      if (!cardToDelete || !window.dataSdk) return;
+
+      const confirmBtn = document.getElementById('confirm-delete');
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = 'Suppression...';
+
+      await window.dataSdk.delete(cardToDelete);
+      
+      deleteModal.classList.add('hidden');
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = 'Supprimer';
+      cardToDelete = null;
+    });
+
+    // Initialize
+    initElementSdk();
+    initDataSdk();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9c203071b63f7f98',t:'MTc2OTA5Njg0MC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
