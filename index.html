@@ -1,116 +1,173 @@
-<!DOCTYPE html>
-<html lang="fr">
+<!doctype html>
+<html lang="fr" class="h-full">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Fiches Math</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
-  <script id="MathJax-script" async
-          src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
-  </script>
-  <style>
-    body { font-family: sans-serif; margin: 20px; }
-    .hidden { display: none; }
-    .card { border: 1px solid #ccc; padding: 10px; margin: 5px 0; }
-    button { margin-top: 5px; }
-  </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Automatismes en 3e</title>
+
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<!-- MathJax pour les maths -->
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+<style>
+body { box-sizing: border-box; font-family: 'Outfit', sans-serif; }
+.mono { font-family: 'JetBrains Mono', monospace; }
+/* Animations */
+.fade-in { animation: fadeIn 0.3s ease-out; }
+@keyframes fadeIn { from {opacity:0; transform: translateY(10px);} to {opacity:1; transform: translateY(0);} }
+.slide-up { animation: slideUp 0.4s ease-out; }
+@keyframes slideUp { from {opacity:0; transform: translateY(20px);} to {opacity:1; transform: translateY(0);} }
+.theme-pill { transition: all 0.2s ease; } 
+.theme-pill:hover { transform: translateY(-2px); }
+</style>
+
 </head>
-<body>
-  <h1>Fiches Math</h1>
+<body class="h-full bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
 
-  <div id="auth-section">
-    <h2>Mode enseignant</h2>
-    <input type="email" id="email" placeholder="Email enseignant">
-    <input type="password" id="password" placeholder="Mot de passe">
-    <button id="login-btn">Se connecter</button>
-    <p id="login-msg"></p>
+<div id="app" class="h-full overflow-auto max-w-6xl mx-auto px-4 py-6">
+
+<!-- Header -->
+<header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 border-b border-slate-700/50 mb-6">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <h1 id="main-title" class="text-xl font-bold text-white">Automatismes en 3e</h1>
+      <p id="subtitle" class="text-sm text-slate-400">Fiches de révision</p>
+    </div>
+    <button id="mode-toggle" class="px-4 py-2 rounded-xl bg-violet-600 text-white">Mode Enseignant</button>
   </div>
+</header>
 
-  <div id="teacher-section" class="hidden">
-    <h2>Ajouter une fiche</h2>
-    <input type="text" id="title" placeholder="Titre de la fiche">
-    <textarea id="content" placeholder="Contenu en LaTeX"></textarea>
-    <button id="add-btn">Ajouter</button>
-    <button id="logout-btn">Se déconnecter</button>
+<!-- Section élève -->
+<div id="student-mode">
+  <h2 class="text-2xl text-white font-bold mb-4">Choisissez un thème</h2>
+  <div id="student-themes" class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+    <button data-theme="calcul" class="p-4 rounded-xl bg-blue-500/10 border border-blue-400">🔢 Calcul</button>
+    <button data-theme="geometrie" class="p-4 rounded-xl bg-purple-500/10 border border-purple-400">📐 Géométrie</button>
+    <button data-theme="grandeurs" class="p-4 rounded-xl bg-amber-500/10 border border-amber-400">📏 Grandeurs</button>
+    <button data-theme="donnees" class="p-4 rounded-xl bg-emerald-500/10 border border-emerald-400">📊 Données</button>
+    <button data-theme="fonctions" class="p-4 rounded-xl bg-rose-500/10 border border-rose-400">📈 Fonctions</button>
   </div>
-
-  <div id="cards-section">
-    <h2>Fiches disponibles</h2>
-    <div id="cards-list"></div>
+  <div id="flashcard-view" class="hidden">
+    <div id="question-card" class="bg-slate-800 p-6 rounded-xl text-center">
+      <div id="flashcard-question" class="text-lg text-white mb-4"></div>
+      <input id="student-answer" type="text" class="w-full p-3 rounded-xl bg-slate-900/50 text-white text-center mb-2" placeholder="Entrez votre réponse">
+      <button id="check-answer-btn" class="w-full py-2 px-4 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl">Vérifier</button>
+      <div id="feedback-message" class="mt-3 text-sm text-amber-300 hidden"></div>
+    </div>
+    <div id="answer-card" class="hidden bg-slate-800 p-6 rounded-xl text-center">
+      <div id="answer-emoji" class="text-4xl mb-2"></div>
+      <div id="answer-status" class="text-white mb-2"></div>
+      <div id="flashcard-answer" class="text-white font-medium"></div>
+      <button id="next-question-btn" class="mt-4 py-2 px-4 rounded-xl bg-slate-700 text-white">Question suivante</button>
+    </div>
   </div>
+</div>
 
-  <script>
-    // ⚠️ Remplace ces valeurs par les tiennes (variables Netlify)
-    const SUPABASE_URL = 'VOTRE_SUPABASE_URL';
-    const SUPABASE_ANON_KEY = 'VOTRE_SUPABASE_ANON_KEY';
+<!-- Section enseignant -->
+<div id="teacher-mode" class="hidden">
+  <h2 class="text-2xl text-white font-bold mb-4">Créer une fiche</h2>
+  <form id="add-card-form" class="space-y-3">
+    <select id="theme-select" class="w-full p-3 rounded-xl bg-slate-900 text-white">
+      <option value="">Choisir un thème</option>
+      <option value="calcul">🔢 Calcul</option>
+      <option value="geometrie">📐 Géométrie</option>
+      <option value="grandeurs">📏 Grandeurs</option>
+      <option value="donnees">📊 Données</option>
+      <option value="fonctions">📈 Fonctions</option>
+    </select>
+    <textarea id="question-input" class="w-full p-3 rounded-xl bg-slate-900 text-white" placeholder="Question"></textarea>
+    <textarea id="answer-input" class="w-full p-3 rounded-xl bg-slate-900 text-white" placeholder="Réponse (MathJax accepté)"></textarea>
+    <button type="submit" class="w-full py-2 px-4 bg-violet-600 text-white rounded-xl">Ajouter la fiche</button>
+  </form>
+  <div id="cards-list" class="mt-6 space-y-4"></div>
+</div>
 
-    const supabase = Supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+</div>
 
-    const loginBtn = document.getElementById('login-btn');
-    const logoutBtn = document.getElementById('logout-btn');
-    const addBtn = document.getElementById('add-btn');
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    const emailInput = document.getElementById('email');
-    const passwordInput = document.getElementById('password');
-    const loginMsg = document.getElementById('login-msg');
+<script>
+const SUPABASE_URL = "https://qzetwcnumydxgyjtumdz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_BVXGIlfdPAiFZ_h-1pVNDQ_VcCTPlBF";
+const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    const teacherSection = document.getElementById('teacher-section');
-    const cardsList = document.getElementById('cards-list');
+let studentCards = [];
+let currentCardIndex = 0;
+let isTeacherMode = false;
 
-    // Affiche les fiches
-    async function fetchCards() {
-      const { data: cards, error } = await supabase.from('cards').select('*');
-      if (error) {
-        console.error(error);
-        return;
-      }
-      cardsList.innerHTML = '';
-      cards.forEach(card => {
-        const div = document.createElement('div');
-        div.className = 'card';
-        div.innerHTML = `<strong>${card.title}</strong><div>${card.content}</div>`;
-        MathJax.typesetPromise([div]);
-        cardsList.appendChild(div);
-      });
+document.getElementById('mode-toggle').addEventListener('click', async () => {
+  if (!isTeacherMode) {
+    const { data: session } = await supabase.auth.signInWithPassword({
+      email: prompt("Email enseignant"),
+      password: prompt("Mot de passe")
+    });
+    if (session) { 
+      isTeacherMode = true;
+      document.getElementById('teacher-mode').classList.remove('hidden');
+      document.getElementById('student-mode').classList.add('hidden');
+    } else {
+      alert("Connexion échouée");
     }
+  } else {
+    isTeacherMode = false;
+    document.getElementById('teacher-mode').classList.add('hidden');
+    document.getElementById('student-mode').classList.remove('hidden');
+  }
+});
 
-    fetchCards();
+// Ajouter une fiche
+document.getElementById('add-card-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const theme = document.getElementById('theme-select').value;
+  const question = document.getElementById('question-input').value;
+  const answer = document.getElementById('answer-input').value;
 
-    // Connexion enseignant
-    loginBtn.addEventListener('click', async () => {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email: emailInput.value,
-        password: passwordInput.value
-      });
-      if (error) {
-        loginMsg.textContent = 'Erreur : ' + error.message;
-        return;
-      }
-      loginMsg.textContent = 'Connecté !';
-      teacherSection.classList.remove('hidden');
-    });
+  if (!theme || !question || !answer) return alert("Remplir tous les champs");
 
-    // Déconnexion
-    logoutBtn.addEventListener('click', async () => {
-      await supabase.auth.signOut();
-      teacherSection.classList.add('hidden');
-      loginMsg.textContent = 'Déconnecté';
-    });
+  await supabase.from('cards').insert([{ theme, question, answer }]);
+  alert("Fiche ajoutée !");
+  document.getElementById('add-card-form').reset();
+});
 
-    // Ajouter une fiche
-    addBtn.addEventListener('click', async () => {
-      const title = document.getElementById('title').value;
-      const content = document.getElementById('content').value;
-      const { error } = await supabase.from('cards').insert([{ title, content }]);
-      if (error) {
-        alert('Erreur : ' + error.message);
-      } else {
-        fetchCards();
-        document.getElementById('title').value = '';
-        document.getElementById('content').value = '';
-      }
-    });
-  </script>
+// Charger les fiches élève
+async function loadCards() {
+  const { data } = await supabase.from('cards').select('*');
+  studentCards = data;
+}
+loadCards();
+
+// Afficher une carte élève
+function showCard(index) {
+  const card = studentCards[index];
+  document.getElementById('flashcard-view').classList.remove('hidden');
+  document.getElementById('question-card').classList.remove('hidden');
+  document.getElementById('flashcard-question').innerHTML = card ? card.question : "Aucune fiche";
+  MathJax.typeset();
+}
+
+// Navigation carte suivante
+document.getElementById('next-question-btn')?.addEventListener('click', () => {
+  currentCardIndex = (currentCardIndex + 1) % studentCards.length;
+  showCard(currentCardIndex);
+});
+
+// Sélection thème élève
+document.getElementById('student-themes').addEventListener('click', (e) => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  const theme = btn.dataset.theme;
+  studentCards = studentCards.filter(c => c.theme === theme);
+  currentCardIndex = 0;
+  showCard(0);
+});
+</script>
 </body>
 </html>
