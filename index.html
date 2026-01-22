@@ -104,6 +104,60 @@
   // Au démarrage
   chargerFiches();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script id="MathJax-script" async
+        src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+<script>
+  const supabaseUrl = 'TON_SUPABASE_URL';
+  const supabaseKey = 'TON_SUPABASE_ANON_KEY';
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  const modeEleveBtn = document.getElementById('modeEleveBtn');
+  const modeEnseignantBtn = document.getElementById('modeEnseignantBtn');
+  const enseignantPanel = document.getElementById('enseignantPanel');
+  const ajouterFicheBtn = document.getElementById('ajouterFicheBtn');
+  const fichesContainer = document.getElementById('fichesContainer');
+
+  modeEleveBtn.onclick = () => {
+    enseignantPanel.style.display = 'none';
+  }
+
+  modeEnseignantBtn.onclick = () => {
+    const mdp = prompt("Mot de passe enseignant ?");
+    if(mdp === "TonMotDePasse") {
+      enseignantPanel.style.display = 'block';
+    } else {
+      alert("Mot de passe incorrect !");
+    }
+  }
+
+  ajouterFicheBtn.onclick = async () => {
+    const titre = document.getElementById('titreFiche').value;
+    const contenu = document.getElementById('contenuFiche').value;
+    if(!titre || !contenu) return alert("Remplis tous les champs !");
+    
+    const { data, error } = await supabase.from('fiches').insert([{ titre, contenu }]);
+    if(error) return alert("Erreur : " + error.message);
+    
+    document.getElementById('titreFiche').value = '';
+    document.getElementById('contenuFiche').value = '';
+    chargerFiches();
+  }
+
+  async function chargerFiches() {
+    const { data } = await supabase.from('fiches').select('*').order('id', { ascending: true });
+    fichesContainer.innerHTML = '';
+    data.forEach(fiche => {
+      const div = document.createElement('div');
+      div.className = 'fiche';
+      div.innerHTML = `<h3>${fiche.titre}</h3><p>${fiche.contenu}</p>`;
+      fichesContainer.appendChild(div);
+    });
+    MathJax.typeset();
+  }
+
+  chargerFiches();
+</script>
 
 </body>
 </html>
