@@ -18,6 +18,7 @@ async function loginTeacher(email, password) {
     console.error(error);
   } else {
     alert("Connectée en mode enseignant");
+    showTeacherMode();
   }
 }
 
