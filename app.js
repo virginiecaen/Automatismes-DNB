@@ -110,3 +110,36 @@ function logoutTeacher() {
 }
 
 document.getElementById("logout-btn").addEventListener("click", logoutTeacher);
+// --------------------
+// FORMULAIRE CRÉATION DE FICHE
+// --------------------
+document.getElementById("teacher-form").addEventListener("submit", async (e) => {
+  e.preventDefault(); // empêche le rechargement de la page
+
+  const theme = document.getElementById("theme-input").value.trim();
+  const question = document.getElementById("question-input").value.trim();
+  const answer = document.getElementById("answer-input").value.trim();
+
+  if (!theme || !question || !answer) {
+    alert("Veuillez remplir tous les champs !");
+    return;
+  }
+
+  // Insert dans Supabase
+  const { data, error } = await supabaseClient
+    .from("cards")
+    .insert([{ theme, question, answer }]);
+
+  if (error) {
+    alert("❌ Erreur lors de l'enregistrement : " + error.message);
+    return;
+  }
+
+  alert("Fiche enregistrée 🎉");
+
+  // Réinitialise le formulaire
+  document.getElementById("teacher-form").reset();
+
+  // Recharge les fiches pour que le mode élève les voie
+  loadCards();
+});
