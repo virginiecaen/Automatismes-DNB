@@ -111,7 +111,7 @@ function logoutTeacher() {
 
 document.getElementById("logout-btn").addEventListener("click", logoutTeacher);
 // --------------------
-// FORMULAIRE CRÉATION DE FICHE
+// FORMULAIRE CRÉATION DE FICHE (ENSEIGNANT)
 // --------------------
 document.getElementById("teacher-form").addEventListener("submit", async (e) => {
   e.preventDefault(); // empêche le rechargement de la page
@@ -125,21 +125,31 @@ document.getElementById("teacher-form").addEventListener("submit", async (e) => 
     return;
   }
 
-  // Insert dans Supabase
-  const { data, error } = await supabaseClient
-    .from("cards")
-    .insert([{ theme, question, answer }]);
+  try {
+    // Insertion dans Supabase
+    const { data, error } = await supabaseClient
+      .from("cards")
+      .insert([{ theme, question, answer }]);
 
-  if (error) {
-    alert("❌ Erreur lors de l'enregistrement : " + error.message);
-    return;
+    if (error) {
+      alert("❌ Erreur lors de l'enregistrement : " + error.message);
+      return;
+    }
+
+    alert("Fiche enregistrée 🎉");
+
+    // Réinitialise le formulaire pour créer plusieurs fiches
+    document.getElementById("teacher-form").reset();
+
+    // Recharge les fiches en mémoire, mais ne change pas l'affichage
+    const { data: allCards, error: loadError } = await supabaseClient
+      .from("cards")
+      .select("*");
+
+    if (!loadError) cards = allCards;
+
+  } catch (err) {
+    alert("❌ Une erreur est survenue : " + err.message);
   }
-
-  alert("Fiche enregistrée 🎉");
-
-  // Réinitialise le formulaire
-  document.getElementById("teacher-form").reset();
-
-  // Recharge les fiches pour que le mode élève les voie
-  loadCards();
 });
+
