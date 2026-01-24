@@ -145,6 +145,10 @@ document.getElementById("teacher-form").addEventListener("submit", async (e) => 
     }
 
     alert("Fiche enregistrée 🎉");
+await loadCards();
+updateThemeCounts(); // met à jour les compteurs sur les boutons thèmes
+document.getElementById("teacher-form").reset(); // vide le formulaire pour créer la fiche suivante
+
 
     // Réinitialise le formulaire pour créer plusieurs fiches
     document.getElementById("teacher-form").reset();
