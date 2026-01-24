@@ -89,6 +89,7 @@ document
     }
   });
 // --------------------
+// --------------------
 // SWITCH MODE ENSEIGNANT
 // --------------------
 function showTeacherMode() {
@@ -108,6 +109,3 @@ function logoutTeacher() {
 }
 
 document.getElementById("logout-btn").addEventListener("click", logoutTeacher);
-
-// Appelle cette fonction après login
-// loginTeacher(...) doit appeler showTeacherMode() après succès
