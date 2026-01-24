@@ -21,27 +21,35 @@ async function loginTeacher(email, password) {
   alert("Connectée en mode enseignant 🎉");
   showTeacherMode(); // ← déclenche le mode enseignant
 }
+function updateThemeCounts() {
+  const themes = ["calcul", "geometrie", "grandeurs", "donnees", "fonctions"];
+
+  themes.forEach(theme => {
+    const count = cards.filter(card => card.theme === theme).length;
+    const el = document.querySelector(`[data-count="${theme}"]`);
+    if (el) el.textContent = count + " fiches";
+  });
+}
 
 
 // --------------------
-// CHARGER LES FICHES
-// --------------------
-let cards = [];
-
+// 📥 Charger les fiches depuis Supabase
 async function loadCards() {
   const { data, error } = await supabaseClient
     .from("cards")
     .select("*");
 
   if (error) {
-    console.error(error);
-    alert("Erreur chargement fiches");
+    alert("Erreur de chargement des fiches : " + error.message);
     return;
   }
 
-  cards = data;
-  console.log("Fiches chargées :", cards);
+  cards = data; // stocke toutes les fiches dans la variable globale
+
+  // Met à jour le compteur par thème côté élève
+  updateThemeCounts();
 }
+
 
 // --------------------
 // CRÉER UNE FICHE
@@ -152,4 +160,40 @@ document.getElementById("teacher-form").addEventListener("submit", async (e) => 
     alert("❌ Une erreur est survenue : " + err.message);
   }
 });
+// 🎲 Choisir une fiche au hasard
+function pickRandomCard(theme = null) {
+  let filtered = cards;
+  if (theme) filtered = cards.filter(c => c.theme === theme);
+  if (filtered.length === 0) return; // aucune fiche disponible
+
+  currentCard = filtered[Math.floor(Math.random() * filtered.length)];
+
+  // Met à jour l’affichage
+  const questionEl = document.getElementById("flashcard-question");
+  const answerEl = document.getElementById("flashcard-answer");
+
+  if (questionEl && answerEl && currentCard) {
+    questionEl.textContent = currentCard.question;
+    answerEl.textContent = currentCard.answer;
+  }
+
+  // Cache la correction
+  const corr = document.getElementById("correction");
+  if (corr) corr.style.display = "none";
+
+  // Vide la réponse de l'élève
+  const studentInput = document.getElementById("student-answer");
+  if (studentInput) studentInput.value = "";
+
+  MathJax.typeset();
+}
+document.querySelectorAll(".student-theme-btn").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const theme = btn.getAttribute("data-theme");
+    document.getElementById("flashcard-view").classList.remove("hidden");
+    pickRandomCard(theme);
+  });
+});
+// 🚀 Lancement
+loadCards();
 
