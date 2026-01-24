@@ -87,3 +87,26 @@ document
       MathJax.typeset();
     }
   });
+// --------------------
+// SWITCH MODE ENSEIGNANT
+// --------------------
+function showTeacherMode() {
+  document.getElementById("student-mode").classList.add("hidden");
+  document.getElementById("teacher-mode").classList.remove("hidden");
+  document.getElementById("logout-btn").classList.remove("hidden");
+  document.getElementById("mode-label").textContent = "Mode Enseignant";
+}
+
+function logoutTeacher() {
+  document.getElementById("teacher-mode").classList.add("hidden");
+  document.getElementById("student-mode").classList.remove("hidden");
+  document.getElementById("logout-btn").classList.add("hidden");
+  document.getElementById("mode-label").textContent = "Mode Élève";
+  currentCard = null;
+  pickRandomCard();
+}
+
+document.getElementById("logout-btn").addEventListener("click", logoutTeacher);
+
+// Appelle cette fonction après login
+// loginTeacher(...) doit appeler showTeacherMode() après succès
