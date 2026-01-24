@@ -64,3 +64,26 @@ async function createCard(theme, question, answer) {
 
 // 🚀 Démarrage
 loadCards();
+// --------------------
+// BOUTON "VÉRIFIER"
+// --------------------
+document
+  .getElementById("check-answer-btn")
+  .addEventListener("click", () => {
+    if (!currentCard) return;
+
+    const userAnswer = document
+      .getElementById("student-answer")
+      .value
+      .trim();
+
+    // Affiche la correction
+    document.getElementById("flashcard-answer").innerHTML =
+      currentCard.answer;
+
+    document.getElementById("correction").classList.remove("hidden");
+
+    if (window.MathJax) {
+      MathJax.typeset();
+    }
+  });
