@@ -1,24 +1,31 @@
 // 🔐 Connexion à Supabase
 const supabaseClient = supabase.createClient(
   "https://qzetwcnumydxgyjtumdz.supabase.co",
-  "sb_publishable_BVXGIlfdPAiFZ_h-1pVNDQ_VcCTPlBF"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF6ZXR3Y251bXlkeGd5anR1bWR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkwOTYyOTksImV4cCI6MjA4NDY3MjI5OX0.QnZ7a9Mo80m0NbVCkDa9zBQ-ZcwDFQyRXMzIWo2l38I"
 );
 
 let cards = [];
 let currentCard = null;
 
-// 📥 Charger les fiches depuis Supabase
+// 📥 Charger les fiches
 async function loadCards() {
   const { data, error } = await supabaseClient
     .from("cards")
     .select("*");
 
   if (error) {
-    alert("Erreur de chargement des fiches");
+    console.error(error);
+    alert("Erreur Supabase : " + error.message);
     return;
   }
 
   cards = data;
+
+  if (cards.length === 0) {
+    alert("Aucune fiche trouvée");
+    return;
+  }
+
   pickRandomCard();
 }
 
@@ -26,19 +33,15 @@ async function loadCards() {
 function pickRandomCard() {
   currentCard = cards[Math.floor(Math.random() * cards.length)];
 
-  document.getElementById("question").innerHTML = currentCard.question;
-  document.getElementById("answer").innerHTML = currentCard.answer;
-  document.getElementById("correction").style.display = "none";
+  document.getElementById("flashcard-question").innerHTML =
+    currentCard.question;
 
-  document.getElementById("student-answer").setValue("");
-
-  MathJax.typeset();
+  document.getElementById("student-answer").value = "";
 }
 
 // 👀 Afficher la correction
 function showCorrection() {
   document.getElementById("correction").style.display = "block";
-  MathJax.typeset();
 }
 
 // 🚀 Lancement
