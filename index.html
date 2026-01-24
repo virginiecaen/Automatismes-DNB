@@ -29,6 +29,12 @@
     .theme-pill:hover { transform: translateY(-2px); }
     @view-transition { navigation: auto; }
   </style>
+  <script>
+  window.MathJax = {
+    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] }
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
 <body class="h-full">
   <div id="app" class="h-full overflow-auto" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);">
@@ -166,3 +172,6 @@
                 </div>
               </div>
               <!-- Feedback Message -->
+<script src="app.js"></script>
+</body>
+</html>
