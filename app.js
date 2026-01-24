@@ -8,19 +8,20 @@ const supabaseClient = supabase.createClient(
 // AUTH ENSEIGNANT
 // --------------------
 async function loginTeacher(email, password) {
-  const { error } = await supabaseClient.auth.signInWithPassword({
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
     email,
     password
   });
 
   if (error) {
-    alert("Connexion refusée");
-    console.error(error);
-  } else {
-    alert("Connectée en mode enseignant");
-    showTeacherMode();
+    alert("❌ Identifiants incorrects ou compte non autorisé");
+    return;
   }
+
+  alert("Connectée en mode enseignant 🎉");
+  showTeacherMode(); // ← déclenche le mode enseignant
 }
+
 
 // --------------------
 // CHARGER LES FICHES
